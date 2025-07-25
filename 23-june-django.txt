@@ -1,0 +1,214 @@
+Create a Django app with MongoDB as DB. Below are the instructions:
+
+Python version 3.10
+
+requirements.txt(sample)
+Django # Main web framework
+pymongo # Official MongoDB Python driver
+mongoengine # ODM for MongoDB (alternative to Djongo)
+
+
+ 1. Project and Database Setup
+
+- Install Django and PyMongo (or Djongo or MongoEngine for integration).
+- Initialize a new Django project and app structure.
+- Configure the Django project to use MongoDB as the primary database.
+
+ 2. Define Collections and Indices
+
+- Ensure collections for: `basic_info`, `course_outcomes`, `syllabus`, `questions`, `course_materials`, `user_requests`.
+- Create a unique index on `course_code` in the `basic_info` collection.
+
+ 3. API Endpoints
+
+# 3.1 Basic Info API
+
+- Endpoint: `/api/basic_info`
+- Method: POST
+- Function: Store basic course information. Use `course_code` as primary (unique) key.
+- Fields: `course_name`, `course_code`, `year`, `branch`, `semester`, `group`
+- Validation:
+  - All fields required.
+  - Reject if `course_code` already exists.
+- Sample Input:
+  
+  {
+      "course_name": "Data Structures",
+      "course_code": "CS101",
+      "year": "2025",
+      "branch": "CSE",
+      "semester": "3",
+      "group": "A"
+  }
+  
+- Sample Output:
+  
+  {
+      "success": true,
+      "message": "Basic info saved successfully",
+      "data": {...}
+  }
+  
+
+# 3.2 Course Outcome API
+
+- Endpoint: `/api/course_outcome`
+- Method: POST
+- Function: Store multiple outcomes, each linked to a `course_code`.
+- Fields: `course_code[]`, `shortform_course_code[]`, `course_outcome[]` (all lists, equal length)
+- Validation:
+  - All fields present and of equal length.
+  - Each `course_code` must exist.
+- Sample Input:
+  
+  {
+      "course_code": ["CS101", "CS101"],
+      "shortform_course_code": ["CO1", "CO2"],
+      "course_outcome": ["Describe algorithms", "Analyze complexity"]
+  }
+  
+- Sample Output:
+  
+  {
+      "success": true,
+      "message": "2 course outcomes saved successfully",
+      "data": [...]
+  }
+  
+
+# 3.3 Syllabus API
+
+- Endpoint: `/api/syllabus`
+- Method: POST
+- Function: Store one or more syllabi lists tied to a `course_code`.
+- Fields: `course_code[]`, `syllabus[]` (lists, equal length; each syllabus may be a comma-separated string)
+- Validation:
+  - All fields present and lengths equal.
+  - Each `course_code` must exist.
+- Sample Input:
+  
+  {
+      "course_code": ["CS101"],
+      "syllabus": ["Introduction, Arrays, Linked Lists"]
+  }
+  
+- Sample Output:
+  
+  {
+      "success": true,
+      "message": "1 syllabi saved successfully",
+      "data": [...]
+  }
+  
+
+# 3.4 Questions API
+
+- Endpoint: `/api/questions`
+- Method: POST
+- Function: Store previous/sample question sets for a `course_code`.
+- Fields: `course_code[]`, `questions[]` (lists, equal length; each questions entry is comma-separated)
+- Validation:
+  - All fields present and lengths equal.
+  - Each `course_code` must exist.
+- Sample Input:
+  
+  {
+      "course_code": ["CS101"],
+      "questions": ["Explain stack, What is a queue?"]
+  }
+  
+- Sample Output:
+  
+  {
+      "success": true,
+      "message": "1 question sets saved successfully",
+      "data": [...]
+  }
+  
+
+# 3.5 Course Materials API
+
+- Endpoint: `/api/course_materials`
+- Method: POST
+- Function: Store metadata related to uploaded files, save files to disk.
+- Fields: `course_code[]`, `file[]`, `file_type[]` (file field is multipart upload; file_type: TXT or PDF or OCR)
+- Validation:
+  - All fields present and lengths equal.
+  - Each `course_code` must exist.
+  - File is not empty and type/extension is allowed.
+- Sample Input: Multipart POST with
+  - `course_code`: CS101
+  - `file`: [data-structures-notes.pdf]
+  - `file_type`: PDF
+- Sample Output:
+  
+  {
+      "success": true,
+      "message": "1 course materials saved successfully",
+      "data": [...]
+  }
+  
+
+# 3.6 Process File API
+
+- Endpoint: `/api/process_file`
+- Method: POST
+- Function: Simulate processing materials for a given `course_code`.
+- Fields: `course_code`
+- Validation: `course_code` required and must exist.
+- Sample Input:
+  
+  {
+      "course_code": "CS101"
+  }
+  
+- Sample Output:
+  
+  {
+      "success": true,
+      "message": "course materials processed successfully"
+  }
+  
+
+# 3.7 User Request API
+
+- Endpoint: `/api/user_request`
+- Method: POST
+- Function: Store a user-submitted request/rating for a course.
+- Fields: `user_id`, `course_code`, `user_question`, `previous_question_rating`
+- Validation:
+  - All fields required.
+  - `course_code` must exist.
+- Sample Input:
+  
+  {
+      "user_id": "user123",
+      "course_code": "CS101",
+      "user_question": "Explain stack operations",
+      "previous_question_rating": "5"
+  }
+  
+- Sample Output:
+  
+  {
+      "success": true,
+      "message": "User request saved successfully",
+      "response": "this is a sample ai response",
+      "data": {...}
+  }
+  
+
+ 4. General Algorithm for Each API
+
+- Parse and validate input fields.
+- Perform existence checks (e.g., `course_code` in `basic_info`).
+- Insert or update documents as specified.
+- Handle duplicates or validation errors with descriptive error messages.
+- Return structured JSON responses with `success`, `message`, and relevant `data`.
+
+ 5. Additional Notes
+
+- Ensure file uploads are stored securely with unique file names.
+- Implement error handling for MongoDB and file operations.
+- All APIs should use JSON for both request (where possible) and response formats, except file uploads, which use multipart form-data.
+
